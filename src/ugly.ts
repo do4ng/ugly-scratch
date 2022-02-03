@@ -6,10 +6,12 @@ export default function ugly(projectJSON: ProjectJsonType) {
   const rd = new Random();
   const targets = projectJSON.targets;
   const broadcasts = {};
+  let globalBroadCasts = {};
   targets.forEach((target, i) => {
     // broadcasts
 
     if (target.isStage) {
+      globalBroadCasts = target.broadcasts;
       Object.keys(target.broadcasts).forEach((e) => {
         const brdrd = rd.getRandom();
         (broadcasts as any)[(target.broadcasts as any)[e]] = brdrd;
@@ -120,13 +122,14 @@ export default function ugly(projectJSON: ProjectJsonType) {
 
         (block.inputs as any).BROADCAST_INPUT = [
           value[0],
-          [value[1][0], (broadcasts as any)[value[1][1]], value[1][1]],
+          [value[1][0], (broadcasts as any)[value[1][1]], value[1][2]],
         ];
         target.blocks[blockhash] = block;
       } else if (block.opcode === "event_whenbroadcastreceived") {
         const value = (block.fields as any).BROADCAST_OPTION;
+        log(broadcasts);
         (block.fields as any).BROADCAST_OPTION = [
-          (broadcasts as any)[value[1]],
+          (globalBroadCasts as any)[value[1]],
           value[1],
         ];
         target.blocks[blockhash] = block;
