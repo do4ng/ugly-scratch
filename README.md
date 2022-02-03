@@ -10,3 +10,5 @@ $ cd ugly-scratch
 $ npm install # yarn
 $ npm run dev # yarn start
 ```
+
+또는 [사이트](https://ugly-scratch.netlify.app/)를 이용하세요.
