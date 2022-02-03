@@ -4,6 +4,7 @@ import filesaver from "file-saver";
 import ugly from "./ugly";
 import { Buffer } from "buffer";
 import Random from "../lib/random";
+import log from "./logger";
 
 (window as any).global = window;
 
@@ -31,12 +32,13 @@ function handleFileSelect(event: any) {
             .async("string")
             .then(function (base64) {
               if (relativePath === "project.json") {
+                log(base64);
                 outputzip.file(
                   relativePath,
                   JSON.stringify(ugly(JSON.parse(base64)))
                 );
                 // console.log("processing..");
-                // console.log(JSON.stringify(ugly(JSON.parse(base64))));
+                log(JSON.stringify(ugly(JSON.parse(base64))));
               } else {
                 outputzip.file(relativePath, base64);
               }
@@ -47,7 +49,8 @@ function handleFileSelect(event: any) {
             outputzip
               .generateAsync({ type: "blob" })
               .then((reszip) => {
-                filesaver.saveAs(reszip, `${rd.getRandom()}.sb3`);
+                if (window.location.hash != "#dev")
+                  filesaver.saveAs(reszip, `${rd.getRandom()}.sb3`);
               })
               .catch((e) => {
                 console.error(e);

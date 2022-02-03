@@ -1,5 +1,6 @@
 import { ProjectJsonType } from "./projecttype";
 import Random from "../lib/random";
+import log from "./logger";
 
 export default function ugly(projectJSON: ProjectJsonType) {
   const rd = new Random();
@@ -29,6 +30,7 @@ export default function ugly(projectJSON: ProjectJsonType) {
     });
 
     // pos
+
     if (Object.keys(target.blocks).length > 0) {
       const t = target.blocks[Object.keys(target.blocks)[0]];
       //console.log(target.blocks);
@@ -79,10 +81,29 @@ export default function ugly(projectJSON: ProjectJsonType) {
               (block.mutation as any).proccode = d;
             }
           } else if (block.opcode.startsWith("argument_reporter")) {
-            (block.fields as any).VALUE = [
-              (vars as any)[(block.fields as any).VALUE[0]],
-              (block.fields as any).VALUE[1],
-            ];
+            const x = (target.blocks as any)[block.parent as string].inputs;
+            let isArg = false;
+            Object.keys(x).forEach((e) => {
+              //console.log(x[e][1], blockhash);
+              if (x[e][1] === blockhash) {
+                isArg = true;
+              }
+            });
+            if (isArg) {
+              //console.log((block.fields as any).VALUE);
+              log(
+                `[${blockhash}] ${JSON.stringify(
+                  (block.fields as any).VALUE
+                )} ${isArg}`
+              );
+              log(vars);
+              if (Object.keys(vars).includes((block.fields as any).VALUE[0])) {
+                (block.fields as any).VALUE = [
+                  (vars as any)[(block.fields as any).VALUE[0]],
+                  (block.fields as any).VALUE[1],
+                ];
+              }
+            }
           }
         });
 
