@@ -4,7 +4,18 @@ import Random from "../lib/random";
 export default function ugly(projectJSON: ProjectJsonType) {
   const rd = new Random();
   const targets = projectJSON.targets;
+  const broadcasts = {};
   targets.forEach((target, i) => {
+    // broadcasts
+
+    if (target.isStage) {
+      Object.keys(target.broadcasts).forEach((e) => {
+        const brdrd = rd.getRandom();
+        (broadcasts as any)[(target.broadcasts as any)[e]] = brdrd;
+        (target.broadcasts as any)[e] = brdrd;
+      });
+    }
+
     // var name
     Object.keys(target.variables).forEach((varHash) => {
       const vardata = (target.variables as any)[varHash];
@@ -16,8 +27,6 @@ export default function ugly(projectJSON: ProjectJsonType) {
       vardata[0] = rd.getRandom();
       (target.lists as any)[varHash] = vardata;
     });
-
-    console.log(target);
 
     // pos
     if (Object.keys(target.blocks).length > 0) {
@@ -39,15 +48,19 @@ export default function ugly(projectJSON: ProjectJsonType) {
         block.y = 0;
       }
 
+      // Functions
+
       if (block.opcode === "procedures_prototype") {
         const rdvs: any[] = [];
+        const vars: object = {};
         const originalP = (block.mutation as any).proccode as string;
 
         let args: any[] = JSON.parse((block.mutation as any).argumentnames);
 
-        args = args.map(() => {
+        args = args.map((arg) => {
           const rv = rd.getRandom();
           rdvs.push(rv);
+          (vars as any)[arg] = rv;
           return rv;
         });
         const d = originalP
@@ -59,7 +72,6 @@ export default function ugly(projectJSON: ProjectJsonType) {
             return code;
           })
           .join(" ");
-        let fileVIndex = 0;
         Object.keys(target.blocks).forEach((blockhash) => {
           const block = target.blocks[blockhash];
           if (block.mutation) {
@@ -68,10 +80,9 @@ export default function ugly(projectJSON: ProjectJsonType) {
             }
           } else if (block.opcode.startsWith("argument_reporter")) {
             (block.fields as any).VALUE = [
-              rdvs[fileVIndex],
+              (vars as any)[(block.fields as any).VALUE[0]],
               (block.fields as any).VALUE[1],
             ];
-            fileVIndex += 1;
           }
         });
 
@@ -81,11 +92,28 @@ export default function ugly(projectJSON: ProjectJsonType) {
 
         target.blocks[blockhash] = block;
       }
+
+      // Broadcasts
+      else if (block.opcode === "event_broadcast") {
+        const value = (block.inputs as any).BROADCAST_INPUT;
+
+        (block.inputs as any).BROADCAST_INPUT = [
+          value[0],
+          [value[1][0], (broadcasts as any)[value[1][1]], value[1][1]],
+        ];
+        target.blocks[blockhash] = block;
+      } else if (block.opcode === "event_whenbroadcastreceived") {
+        const value = (block.fields as any).BROADCAST_OPTION;
+        (block.fields as any).BROADCAST_OPTION = [
+          (broadcasts as any)[value[1]],
+          value[1],
+        ];
+        target.blocks[blockhash] = block;
+      }
     });
 
     targets[i] = target;
   });
   projectJSON.targets = targets;
-  console.log(JSON.stringify(projectJSON));
   return projectJSON;
 }

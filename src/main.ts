@@ -47,7 +47,6 @@ function handleFileSelect(event: any) {
             outputzip
               .generateAsync({ type: "blob" })
               .then((reszip) => {
-                console.log(reszip);
                 filesaver.saveAs(reszip, `${rd.getRandom()}.sb3`);
               })
               .catch((e) => {
