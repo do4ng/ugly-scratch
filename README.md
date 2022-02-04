@@ -15,7 +15,7 @@
 $ git clone https://github.com/kangdongmandoo/ugly-scratch.git
 $ cd ugly-scratch
 $ npm install # yarn
-$ npm run dev # yarn start
+$ npm run dev # yarn dev
 ```
 
 또는 [ugly-scratch.netlify.app](https://ugly-scratch.netlify.app/)를 이용하세요.
